@@ -1,6 +1,6 @@
 # mongocloner
 
-A simple utility to clone data on mongo.
+A simple utility to clone, append or backup data from a mongo URI.
 With this tool you can do different actions:
 
 - `backup_source`: backup specified collections from a wellknown mongo uri
