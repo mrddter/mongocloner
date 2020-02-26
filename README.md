@@ -1,6 +1,7 @@
 # mongocloner
 
 A simple utility to clone, append or backup data from a mongo URI.
+
 With this tool you can do different actions:
 
 - `backup_source`: backup specified collections from a wellknown mongo uri
@@ -17,7 +18,7 @@ This code is not optimized and is not designed for production. It's is usable in
 
 ## Installation
 
-1. fork or clone this repo
+1. `fork` or `clone` this repo
 1. create your own `.env`
 1. execute `yarn` to install all the stuff
 1. execute `yarn dev` or `yarn start` (it's the same) to execute it
@@ -25,7 +26,7 @@ This code is not optimized and is not designed for production. It's is usable in
 
 ## Content of .env
 
-```env
+```javascript
 
 # Possible ACTIONs --> backup_source, append, clone
 ACTION=backup_source
