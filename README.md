@@ -7,7 +7,16 @@ a simple utility to clone data on mongo
 [NodeJS_Copy_Collection](https://github.com/matszrmn/NodeJS_Copy_Collection/tree/master/src)
 
 1. first of all create/change your .env
+1. install with yarn
 1. run with "yarn dev" or "yarn start" (it's the same)
+
+## Installation
+
+- fork or clone this repo
+- create your own `.env`
+- execute `yarn` to install all the stuff
+- execute `yarn dev` to execute it
+- that's all
 
 ## Content of .env
 
