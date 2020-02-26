@@ -1,22 +1,27 @@
 # mongocloner
 
-a simple utility to clone data on mongo
+A simple utility to clone data on mongo.
+With this tool you can do different actions:
 
-## fully BASED on
+- `backup_source`: backup specified collections from a wellknown mongo uri
+- `append`: append specified collections from a wellknown mongo uri to another
+- `clone`: drop and clone specified collections from a wellknown mongo uri to another
+
+## Fully BASED on
 
 First of all, thanks to **Matheus Mendes de Sant'Ana** ([profile](https://github.com/matszrmn)) for share [NodeJS_Copy_Collection](https://github.com/matszrmn/NodeJS_Copy_Collection/tree/master/src).
 
-1. first of all create/change your .env
-1. install with yarn
-1. run with "yarn dev" or "yarn start" (it's the same)
+## Important note
+
+This code is not optimized and is not designed for production. It's is usable in development contest with small collections. But if you want submit a PR to improve this utility or feel free to use it in your project (if is possible send me a message to let me know it).
 
 ## Installation
 
-- fork or clone this repo
-- create your own `.env`
-- execute `yarn` to install all the stuff
-- execute `yarn dev` to execute it
-- that's all
+1. fork or clone this repo
+1. create your own `.env`
+1. execute `yarn` to install all the stuff
+1. execute `yarn dev` or `yarn start` (it's the same) to execute it
+1. that's all
 
 ## Content of .env
 
