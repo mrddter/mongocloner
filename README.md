@@ -4,7 +4,7 @@ a simple utility to clone data on mongo
 
 ## fully BASED on
 
-[NodeJS_Copy_Collection](https://github.com/matszrmn/NodeJS_Copy_Collection/tree/master/src)
+First of all, thanks to **Matheus Mendes de Sant'Ana** ([profile](https://github.com/matszrmn)) for share [NodeJS_Copy_Collection](https://github.com/matszrmn/NodeJS_Copy_Collection/tree/master/src).
 
 1. first of all create/change your .env
 1. install with yarn
