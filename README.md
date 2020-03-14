@@ -1,6 +1,6 @@
 # mongocloner
 
-A simple utility to clone, append or backup data from a mongo URI.
+A simple utility to clone, append or backup data from a mongo URI to another.
 
 With this tool you can do different actions:
 
@@ -26,7 +26,7 @@ This code is not optimized and is not designed for production. It's is usable in
 
 ## Content of .env
 
-```javascript
+```ruby
 
 # Possible ACTIONs --> backup_source, append, clone
 ACTION=backup_source

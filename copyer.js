@@ -12,7 +12,8 @@ const {
 
 const ACTION_CLONE = "clone";
 const ACTION_APPEND = "append";
-const ACTION_BACKUP = "backup_source";
+const ACTION_BACKUP_SOURCE = "backup_source";
+const ACTION_DELETE_TARGET = "delete_target";
 
 let fs = require("fs");
 let path = require("path");
@@ -20,20 +21,37 @@ let moment = require("moment");
 let mongoClientSource = require("mongodb").MongoClient;
 let mongoClientTarget = require("mongodb").MongoClient;
 
-const backupDir = path.join(".", "dump", moment().format("YYYYMMDD.HHmmSS"));
+const backupDir = path.join(
+  ".",
+  "dump",
+  dbSource,
+  moment().format("YYYYMMDD.HHmmSS")
+);
 
-if (action === ACTION_BACKUP && !fs.existsSync(backupDir))
+console.log("Source Url", urlSource);
+console.log("Source Url", dbSource);
+console.log("Target Url", urlTarget);
+console.log("Target DB", dbTarget);
+console.log("Action", action);
+console.log("-----------------");
+
+if (action === ACTION_BACKUP_SOURCE && !fs.existsSync(backupDir))
   fs.mkdirSync(backupDir, { recursive: true });
 
 for (let i = 0; i < collectionsSource.length; i++) {
   let collectionSource = collectionsSource[i];
   let collectionTarget = collectionsTarget[i];
 
-  if (action === ACTION_CLONE) dropCollectionFromTarget(collectionTarget);
+  if (action === ACTION_CLONE || action === ACTION_DELETE_TARGET) {
+    dropCollectionFromTarget(collectionTarget);
+  }
 
   function copyDocumentsInChunks(skip, limit, count) {
+    if (action === ACTION_DELETE_TARGET) {
+      return;
+    }
     if (skip >= count) {
-      console.log("Source", collectionSource, " - done");
+      console.log("Source", collectionSource, "- done");
       return;
     }
 
@@ -52,7 +70,7 @@ for (let i = 0; i < collectionsSource.length; i++) {
           .toArray(function(err, result) {
             if (err) throw err;
 
-            if (action === ACTION_BACKUP)
+            if (action === ACTION_BACKUP_SOURCE)
               backupDocuments(collectionTarget, result);
             else if (action === ACTION_APPEND)
               insertDocuments(collectionTarget, result);
@@ -82,12 +100,35 @@ for (let i = 0; i < collectionsSource.length; i++) {
         if (error) throw error;
 
         let db = mongo.db(dbTarget);
-        db.collection(collectionTarget).drop(function(err, delOk) {
-          if (err) throw err;
-          if (delOk)
-            console.log("Target", collectionTarget, "- collection deleted");
-          mongo.close();
+
+        db.listCollections({ name: collectionTarget }).next(function(
+          err,
+          collinfo
+        ) {
+          if (collinfo) {
+            try {
+              db.collection(collectionTarget).drop(function(err, delOk) {
+                if (err) throw err;
+                if (delOk)
+                  console.log(
+                    "Target",
+                    collectionTarget,
+                    "- collection deleted"
+                  );
+              });
+            } catch (err) {
+              console.log(
+                "Target",
+                collectionTarget,
+                "- collection not found (error)"
+              );
+            }
+          } else {
+            console.log("Target", collectionTarget, "- collection not found");
+          }
         });
+
+        mongo.close();
       }
     );
   }
@@ -119,20 +160,21 @@ for (let i = 0; i < collectionsSource.length; i++) {
   }
 
   function countDocumentsDBSource(callback, limit) {
-    mongoClientSource.connect(urlSource, { useNewUrlParser: true }, function(
-      error,
-      mongo
-    ) {
-      if (error) throw error;
+    mongoClientSource.connect(
+      urlSource,
+      { useUnifiedTopology: true, useNewUrlParser: true },
+      function(error, mongo) {
+        if (error) throw error;
 
-      let db = mongo.db(dbSource);
-      db.collection(collectionSource)
-        .countDocuments()
-        .then(count => {
-          callback(0, limit, count);
-          mongo.close();
-        });
-    });
+        let db = mongo.db(dbSource);
+        db.collection(collectionSource)
+          .countDocuments()
+          .then(count => {
+            callback(0, limit, count);
+            mongo.close();
+          });
+      }
+    );
   }
 
   countDocumentsDBSource(copyDocumentsInChunks, chunks);
