@@ -4,8 +4,9 @@ A simple utility to clone, append or backup data from a mongo URI to another.
 
 With this tool you can do different actions:
 
-- `backup_source`: backup specified collections from a wellknown mongo uri
+- `backup_source`: backup specified collections from the source
 - `append`: append specified collections from a wellknown mongo uri to another
+- `delete_target`: delete specified collections from the target
 - `clone`: drop and clone specified collections from a wellknown mongo uri to another
 
 ## Fully BASED on
