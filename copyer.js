@@ -100,35 +100,21 @@ for (let i = 0; i < collectionsSource.length; i++) {
         if (error) throw error;
 
         let db = mongo.db(dbTarget);
-
-        db.listCollections({ name: collectionTarget }).next(function(
-          err,
-          collinfo
-        ) {
-          if (collinfo) {
-            try {
-              db.collection(collectionTarget).drop(function(err, delOk) {
+        db.collection(collectionSource)
+          .countDocuments()
+          .then(count => {
+            count >= 0 &&
+              db.collection(collectionTarget).drop(function(err, result) {
                 if (err) throw err;
-                if (delOk)
+                if (result)
                   console.log(
                     "Target",
                     collectionTarget,
                     "- collection deleted"
                   );
+                mongo.close();
               });
-            } catch (err) {
-              console.log(
-                "Target",
-                collectionTarget,
-                "- collection not found (error)"
-              );
-            }
-          } else {
-            console.log("Target", collectionTarget, "- collection not found");
-          }
-        });
-
-        mongo.close();
+          });
       }
     );
   }
