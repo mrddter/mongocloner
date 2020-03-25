@@ -1,8 +1,7 @@
 'use sctrict'
 
 require('dotenv').config({ path: __dirname + '/.env' })
-// let copyer = require("./copyer");
-let copyer = require('./worker')
+require('./worker')
 
 // fully BASED on
 // https://github.com/matszrmn/NodeJS_Copy_Collection/tree/master/src
