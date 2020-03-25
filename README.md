@@ -1,13 +1,13 @@
 # mongocloner
 
-A simple utility to clone, append or backup data from a mongo URI to another.
+A simple utility to drop, clone, append or backup data from a mongo URI to another.
 
 With this tool you can do different actions:
 
 - `backup_source`: backup specified collections from the source
 - `append`: append specified collections from a wellknown mongo uri to another
-- `delete_target`: delete specified collections from the target
-- `clone`: drop and clone specified collections from a wellknown mongo uri to another
+- `delete_target`: drop specified collections from the target
+- `clone`: drop and append specified collections from a wellknown mongo uri to another
 
 ## Fully BASED on
 
@@ -15,7 +15,7 @@ First of all, thanks to **Matheus Mendes de Sant'Ana** ([profile](https://github
 
 ## Important note
 
-This code is not optimized and is not designed for production. It's is usable in development contest with small collections. But if you want submit a PR to improve this utility or feel free to use it in your project (if is possible send me a message to let me know it).
+This code is not optimized and is not designed for production. It's is usable in development contest with small collections. But if you want submit a PR to improve this utility. And feel free to use it in your project (send me a message if you want, it's really appreciated).
 
 ## Installation
 
@@ -25,13 +25,17 @@ This code is not optimized and is not designed for production. It's is usable in
 1. execute `yarn dev` or `yarn start` (it's the same) to execute it
 1. that's all
 
+## Comamnd line
+
+Not necessary.
+
 ## Content of .env
 
 ```ruby
 
 # Possible ACTIONs --> backup_source, append, clone
 ACTION=backup_source
-CHUNK_SIZE=50000
+CHUNK_SIZE=10000
 TIMEOUT=60000
 
 SOURCE_URI=mongodb+srv://YOUR-SOURCE-USR:YOUR-SOURCE-PASSWORD@mongocluster-12345.mongodb.net/YOUR-SOURCE-DB
