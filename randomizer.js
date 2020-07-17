@@ -1,5 +1,5 @@
 const { nameByRace } = require('fantasy-name-generator')
-const faker = require('faker') // const { Types } = require('mongoose')
+const faker = require('faker')
 const moment = require('moment')
 
 module.exports = {
