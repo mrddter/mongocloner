@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # mongocloner
 
 A simple utility to drop, clone, append or backup data from a mongo URI to another.
@@ -15,7 +17,7 @@ First of all, thanks to **Matheus Mendes de Sant'Ana** ([profile](https://github
 
 ## Important note
 
-This code is not optimized and is not designed for production. It's is usable in development contest with small collections. But if you want submit a PR to improve this utility. And feel free to use it in your project (send me a message if you want, it's really appreciated).
+This code is not optimized and is not designed for production. It's is usable in development contest with small collections. Feel fre to submit a PR to improve this utility. And feel free to use it in your project (send me a message if you want, it's really appreciated).
 
 ## Installation
 
@@ -47,7 +49,8 @@ TARGET_DATABASE=YOUR-TARGET-DB
 # List of collections to read (comma separated)
 SOURCE_COLLECTIONS=collection1,collection2,collection3,collection4,collection5
 
-# Void if the same of SOURCE or different name (but in the same number)
+# Void if the same of SOURCE or is possible to specify different names
+# (but with the same number of collections, and pay attention to the order because matters)
 TARGET_COLLECTIONS=
 
 ```
