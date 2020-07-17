@@ -62,3 +62,5 @@ typings/
 
 dump/
 .DS_STore
+
+randomizer.js
