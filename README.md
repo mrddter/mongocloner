@@ -6,7 +6,8 @@ A simple utility to drop, clone, append or backup data from a mongo URI to anoth
 
 With this tool you can do different actions:
 
-- `backup_source`: backup specified collections from the source
+- `backup_json`: backup specified collections from the source in json format
+- `backup_yaml`: backup specified collections from the source in yaml format
 - `append`: append specified collections from a wellknown mongo uri to another
 - `delete_target`: drop specified collections from the target
 - `clone`: drop and append specified collections from a wellknown mongo uri to another
@@ -35,7 +36,7 @@ Not necessary.
 
 ```ruby
 
-# Possible ACTIONs --> backup_source, append, clone, delete_target
+# Possible ACTIONs --> backup_json, backup_yaml, append, clone, delete_target
 ACTION=backup_source
 CHUNK_SIZE=10000
 TIMEOUT=3000

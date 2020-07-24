@@ -12,8 +12,11 @@
     "dotenv": "^8.2.0",
     "faker": "^4.1.0",
     "fantasy-name-generator": "^2.0.0",
+    "fs": "^0.0.1-security",
+    "js-yaml": "^3.14.0",
     "moment": "^2.24.0",
-    "mongodb": "^3.5.5"
+    "mongodb": "^3.5.5",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "prettier": "2.0.2"

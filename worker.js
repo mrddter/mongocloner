@@ -1,5 +1,5 @@
 const {
-  action,
+  action: configAction,
   urlSource,
   dbSource,
   collectionsSource,
@@ -13,12 +13,29 @@ const {
 
 const ACTION_CLONE = 'clone'
 const ACTION_APPEND = 'append'
-const ACTION_BACKUP_SOURCE = 'backup_source'
+const ACTION_BACKUP_JSON = 'backup_json'
+const ACTION_BACKUP_YAML = 'backup_yaml'
 const ACTION_DELETE_TARGET = 'delete_target'
 const ACTION_IMPORT_BACKUP = 'import_backup' // to target
 
+const ACTIONS = [
+  { name: ACTION_CLONE, source: true, target: true },
+  { name: ACTION_APPEND, source: true, target: true },
+  { name: ACTION_BACKUP_JSON, source: true, target: false },
+  { name: ACTION_BACKUP_YAML, source: true, target: false },
+  { name: ACTION_DELETE_TARGET, source: false, target: true },
+  { name: ACTION_IMPORT_BACKUP, source: false, target: true },
+]
+
+const action = ACTIONS.find((actionItem) => actionItem.name === configAction)
+if (!action) {
+  console.log(`Action ${configAction} not valid.`)
+  return
+}
+
 const fs = require('fs')
 const path = require('path')
+const yaml = require('js-yaml')
 const moment = require('moment')
 const { userInfoRandomizer } = require('./randomizer')
 let mongoSource = require('mongodb').MongoClient
@@ -26,7 +43,7 @@ let mongoTarget = require('mongodb').MongoClient
 
 const backupDir = path.join('.', 'dump', dbSource, moment().format('YYYYMMDD.HHmmSS'))
 
-if (action === ACTION_BACKUP_SOURCE && !fs.existsSync(backupDir)) {
+if ((action.name === ACTION_BACKUP_JSON || action.name === ACTION_BACKUP_YAML) && !fs.existsSync(backupDir)) {
   console.log('Source', 'backup - path', backupDir)
   fs.mkdirSync(backupDir, { recursive: true })
 }
@@ -35,11 +52,28 @@ console.log('Source Url:', urlSource)
 console.log('Source DB Name:', dbSource)
 console.log('Target Url:', urlTarget)
 console.log('Target DB Name:', dbTarget)
-console.log('Required action:', action)
+console.log('Required action:', action.name)
 console.log('-----------------')
 
 function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function backupDocuments(name, collectionName, documents, format) {
+  try {
+    if (format === 'json') {
+      fs.appendFileSync(path.join(backupDir, collectionName + '.json'), JSON.stringify(documents), 'utf-8')
+    } else if (format === 'yaml') {
+      console.log('YAML')
+      console.log('documents before', documents.length)
+      const data = yaml.safeDump(documents)
+      console.log('documents after', data)
+      fs.appendFileSync(path.join(backupDir, collectionName + '.yaml'), data, 'utf-8')
+    }
+  } catch (err) {
+    console.log(name, 'backup', collectionName, '- error', err)
+    throw err
+  }
 }
 
 async function insertDocuments(name, db, collectionName, documents) {
@@ -116,16 +150,6 @@ async function countDocuments(dbSource, collectionSource, dbTarget, collectionTa
   }
 }
 
-function backupDocuments(name, collectionName, documents) {
-  try {
-    // console.log(name, 'backup', collectionName, '- to write', documents.length, 'documents')
-    fs.appendFileSync(path.join(backupDir, collectionName + '.json'), JSON.stringify(documents))
-  } catch (err) {
-    console.log(name, 'backup', collectionName, '- error', err)
-    throw err
-  }
-}
-
 async function loadClient(mongoClient, url, dbName) {
   try {
     const mongo = await mongoClient.connect(url, {
@@ -147,7 +171,7 @@ async function evaluateDocumentsInChunks(
   limit,
   count,
 ) {
-  if (action === ACTION_DELETE_TARGET) {
+  if (action.name === ACTION_DELETE_TARGET) {
     return
   }
   if (skip >= count) {
@@ -164,9 +188,11 @@ async function evaluateDocumentsInChunks(
       .limit(limit)
       .toArray()
 
-    if (action === ACTION_BACKUP_SOURCE) {
-      await backupDocuments('Source', collectionSource, documents)
-    } else if (action === ACTION_APPEND || action === ACTION_CLONE) {
+    if (action.name === ACTION_BACKUP_JSON) {
+      await backupDocuments('Source', collectionSource, documents, 'json')
+    } else if (action.name === ACTION_BACKUP_YAML) {
+      await backupDocuments('Source', collectionSource, documents, 'yaml')
+    } else if (action.name === ACTION_APPEND || action.name === ACTION_CLONE) {
       await insertDocuments('Target', dbTarget, collectionTarget, documents)
     }
 
@@ -188,27 +214,45 @@ async function evaluateDocumentsInChunks(
 }
 
 async function execute() {
-  const { mongo: mongoClientSource, db: clientSource } = await loadClient(mongoSource, urlSource, dbSource)
-  if (!clientSource) {
-    console.log('Mongo client source not valid')
-    return
+  let mongoClientSource = null
+  let clientSource = null
+
+  if (action.source) {
+    const { mongo, db } = await loadClient(mongoSource, urlSource, dbSource)
+    mongoClientSource = mongo
+    clientSource = db
+    if (!clientSource) {
+      console.log('Mongo client source not valid')
+      return
+    }
   }
 
-  const { mongo: mongoClientTarget, db: clientTarget } = await loadClient(mongoTarget, urlTarget, dbTarget)
-  if (!clientTarget) {
-    console.log('Mongo client target not valid')
-    return
+  let mongoClientTarget = null
+  let clientTarget = null
+
+  if (action.target) {
+    const { mongo, db } = await loadClient(mongoTarget, urlTarget, dbTarget)
+    mongoClientTarget = mongo
+    clientTarget = db
+    if (!clientTarget) {
+      console.log('Mongo client target not valid')
+      return
+    }
   }
 
   await Promise.all(
     collectionsSource.map(async (collectionSource, i) => {
       const collectionTarget = collectionsTarget[i]
 
-      if (action === ACTION_CLONE || action === ACTION_DELETE_TARGET || action === ACTION_IMPORT_BACKUP) {
+      if (
+        action.name === ACTION_CLONE ||
+        action.name === ACTION_DELETE_TARGET ||
+        action.name === ACTION_IMPORT_BACKUP
+      ) {
         await dropCollection('Target', clientTarget, collectionTarget)
       }
 
-      if (action !== ACTION_DELETE_TARGET && action !== ACTION_IMPORT_BACKUP) {
+      if (action.name !== ACTION_DELETE_TARGET && action.name !== ACTION_IMPORT_BACKUP) {
         await countDocuments(
           clientSource,
           collectionSource,
@@ -217,7 +261,7 @@ async function execute() {
           evaluateDocumentsInChunks,
           chunks,
         )
-      } else if (action === ACTION_IMPORT_BACKUP) {
+      } else if (action.name === ACTION_IMPORT_BACKUP) {
         await importBackup(collectionSource, clientTarget, collectionTarget, chunks)
       }
     }),
@@ -227,8 +271,8 @@ async function execute() {
   setTimeout(() => {
     try {
       console.log('Closing connections..')
-      mongoClientSource.close()
-      mongoClientTarget.close()
+      action.source && mongoClientSource.close()
+      action.target && mongoClientTarget.close()
     } catch (err) {
       console.log('Damn, got a error', err)
       throw err
