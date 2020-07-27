@@ -28,7 +28,7 @@ This code is not optimized and is not designed for production. It's is usable in
 1. execute `yarn dev` or `yarn start` (it's the same) to execute it
 1. that's all
 
-## Comamnd line
+## Command line
 
 Not necessary.
 
