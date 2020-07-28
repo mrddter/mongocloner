@@ -41,7 +41,8 @@ const fs = require('fs')
 const path = require('path')
 const yaml = require('js-yaml')
 const moment = require('moment')
-const { userInfoRandomizer } = require('./randomizer')
+// const { userInfoRandomizer } = require('./randomizer')
+const processor = require('./processor')
 let mongoSource = require('mongodb').MongoClient
 let mongoTarget = require('mongodb').MongoClient
 
@@ -80,13 +81,15 @@ function backupDocuments(name, collectionName, documents, format) {
 async function insertDocuments(name, db, collectionName, documents) {
   try {
     if (documents != null && documents.length > 0) {
-      if (collectionName === 'userinfo______') {
-        documents = await Promise.all(
-          documents.map((userinfo) => {
-            return userInfoRandomizer(userinfo)
-          }),
-        )
-      }
+      // if (collectionName === 'userinfo______') {
+      //   documents = await Promise.all(
+      //     documents.map((userinfo) => {
+      //       return userInfoRandomizer(userinfo)
+      //     }),
+      //   )
+      // }
+
+      documents = await processor.process(collectionName, documents)
 
       console.log(name, collectionName, '- insert', documents.length, 'documents')
       await db.collection(collectionName).insertMany(documents)
@@ -164,9 +167,9 @@ async function loadClient(mongoClient, url, dbName) {
 }
 
 async function evaluateDocumentsInChunks(
-  dbSource,
+  clientSource,
   collectionSource,
-  dbTarget,
+  clientTarget,
   collectionTarget,
   skip,
   limit,
@@ -181,7 +184,7 @@ async function evaluateDocumentsInChunks(
   }
 
   try {
-    const documents = await dbSource
+    const documents = await clientSource
       .collection(collectionSource)
       .find({})
       .sort({ _id: 1 })
@@ -194,15 +197,15 @@ async function evaluateDocumentsInChunks(
     } else if (action.name === ACTION_BACKUP_YAML) {
       await backupDocuments('Source', collectionSource, documents, 'yaml')
     } else if (action.name === ACTION_APPEND || action.name === ACTION_CLONE) {
-      await insertDocuments('Target', dbTarget, collectionTarget, documents)
+      await insertDocuments('Target', clientTarget, collectionTarget, documents)
     }
 
     timeOut > 0 && (await timeout(timeOut))
 
     await evaluateDocumentsInChunks(
-      dbSource,
+      clientSource,
       collectionSource,
-      dbTarget,
+      clientTarget,
       collectionTarget,
       skip + limit,
       limit,
@@ -240,6 +243,8 @@ async function execute() {
       return
     }
   }
+
+  await processor.initialize({ source: clientSource, target: clientTarget })
 
   if (action.name === ACTION_LIST_SOURCE || action.name === ACTION_LIST_TARGET) {
     const client = action.name === ACTION_LIST_SOURCE ? clientSource : clientTarget
