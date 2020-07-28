@@ -10,7 +10,7 @@ async function initialize(data) {
   // do something like load static data to use in process method
 
   applicationStateTypes = await findIds(source, 'applicationstatetype')
-  console.log('Load applicationStateTypes from Source', applicationStateTypes)
+  console.log('Load applicationStateTypes from Source', applicationStateTypes.length)
 }
 
 async function process(collectionName, documents) {
