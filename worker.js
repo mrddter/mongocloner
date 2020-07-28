@@ -68,10 +68,7 @@ function backupDocuments(name, collectionName, documents, format) {
     if (format === 'json') {
       fs.appendFileSync(path.join(backupDir, collectionName + '.json'), JSON.stringify(documents), 'utf-8')
     } else if (format === 'yaml') {
-      console.log('YAML')
-      console.log('documents before', documents.length)
       const data = yaml.safeDump(documents)
-      console.log('documents after', data)
       fs.appendFileSync(path.join(backupDir, collectionName + '.yaml'), data, 'utf-8')
     }
   } catch (err) {
