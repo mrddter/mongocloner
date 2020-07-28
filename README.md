@@ -11,6 +11,8 @@ With this tool you can do different actions:
 - `append`: append specified collections from a wellknown mongo uri to another
 - `delete_target`: drop specified collections from the target
 - `clone`: drop and append specified collections from a wellknown mongo uri to another
+- `list_source`: list all collection names from the source
+- `list_target`: list all collection names from the target
 
 ## Fully BASED on
 
@@ -36,7 +38,7 @@ Not necessary.
 
 ```ruby
 
-# Possible ACTIONs --> backup_json, backup_yaml, append, clone, delete_target
+# Possible ACTIONs --> backup_json, backup_yaml, append, clone, delete_target, list_source, list_target
 ACTION=backup_source
 CHUNK_SIZE=10000
 TIMEOUT=3000

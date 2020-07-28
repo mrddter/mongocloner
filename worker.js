@@ -17,6 +17,8 @@ const ACTION_BACKUP_JSON = 'backup_json'
 const ACTION_BACKUP_YAML = 'backup_yaml'
 const ACTION_DELETE_TARGET = 'delete_target'
 const ACTION_IMPORT_BACKUP = 'import_backup' // to target
+const ACTION_LIST_SOURCE = 'list_source'
+const ACTION_LIST_TARGET = 'list_target'
 
 const ACTIONS = [
   { name: ACTION_CLONE, source: true, target: true },
@@ -25,6 +27,8 @@ const ACTIONS = [
   { name: ACTION_BACKUP_YAML, source: true, target: false },
   { name: ACTION_DELETE_TARGET, source: false, target: true },
   { name: ACTION_IMPORT_BACKUP, source: false, target: true },
+  { name: ACTION_LIST_SOURCE, source: true, target: false },
+  { name: ACTION_LIST_TARGET, source: false, target: true },
 ]
 
 const action = ACTIONS.find((actionItem) => actionItem.name === configAction)
@@ -240,32 +244,48 @@ async function execute() {
     }
   }
 
-  await Promise.all(
-    collectionsSource.map(async (collectionSource, i) => {
-      const collectionTarget = collectionsTarget[i]
+  if (action.name === ACTION_LIST_SOURCE || action.name === ACTION_LIST_TARGET) {
+    const client = action.name === ACTION_LIST_SOURCE ? clientSource : clientTarget
+    const prefix = action.name === ACTION_LIST_SOURCE ? 'SOURCE' : 'TARGET'
 
-      if (
-        action.name === ACTION_CLONE ||
-        action.name === ACTION_DELETE_TARGET ||
-        action.name === ACTION_IMPORT_BACKUP
-      ) {
-        await dropCollection('Target', clientTarget, collectionTarget)
-      }
+    await client
+      .listCollections()
+      .toArray()
+      .then((collections) => {
+        const names = collections
+          .filter((c) => c.type === 'collection')
+          .map((c) => c.name)
+          .sort()
+        console.log(`${prefix}_COLLECTIONS=` + names)
+      })
+  } else {
+    await Promise.all(
+      collectionsSource.map(async (collectionSource, i) => {
+        const collectionTarget = collectionsTarget[i]
 
-      if (action.name !== ACTION_DELETE_TARGET && action.name !== ACTION_IMPORT_BACKUP) {
-        await countDocuments(
-          clientSource,
-          collectionSource,
-          clientTarget,
-          collectionTarget,
-          evaluateDocumentsInChunks,
-          chunks,
-        )
-      } else if (action.name === ACTION_IMPORT_BACKUP) {
-        await importBackup(collectionSource, clientTarget, collectionTarget, chunks)
-      }
-    }),
-  )
+        if (
+          action.name === ACTION_CLONE ||
+          action.name === ACTION_DELETE_TARGET ||
+          action.name === ACTION_IMPORT_BACKUP
+        ) {
+          await dropCollection('Target', clientTarget, collectionTarget)
+        }
+
+        if (action.name !== ACTION_DELETE_TARGET && action.name !== ACTION_IMPORT_BACKUP) {
+          await countDocuments(
+            clientSource,
+            collectionSource,
+            clientTarget,
+            collectionTarget,
+            evaluateDocumentsInChunks,
+            chunks,
+          )
+        } else if (action.name === ACTION_IMPORT_BACKUP) {
+          await importBackup(collectionSource, clientTarget, collectionTarget, chunks)
+        }
+      }),
+    )
+  }
 
   console.log('All done')
   setTimeout(() => {
