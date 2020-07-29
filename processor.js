@@ -26,7 +26,7 @@ async function process(collectionName, documents) {
         state_backup_date: new Date(),
       }
     })
-  } else if (collectionName === 'userInfo') {
+  } else if (collectionName === 'userinfo') {
     documents = await documents.map((userinfo) => {
       return userInfoRandomizer(userinfo)
     })
