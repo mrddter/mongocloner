@@ -57,3 +57,52 @@ SOURCE_COLLECTIONS=collection1,collection2,collection3,collection4,collection5
 TARGET_COLLECTIONS=
 
 ```
+
+## How to process documents before inserting
+
+In the class [processor.js](processor.js) is possible to add specific logic to manipulate documents before inserting into target.
+
+For this purpose you can customize code into class `processor`, here you can change these 2 methods:
+
+```javascript
+let fields = []
+
+async function initialize(data) {
+  const { source, target } = data
+
+  // do something like load static data to use in process method
+  console.log('Load [myfields] from source')
+  await await source
+    .collection('myfields')
+    .find({})
+    .toArray()
+    .then(async (documents) => {
+      await documents.map((field) => {
+        fields[field._id] = field.name
+      })
+    })
+}
+```
+
+```javascript
+async function process(collectionName, documents) {
+  if (collectionName === 'myothercollection') {
+    // do something with collection myothercollection ..
+    // for example: change '_id' with the explicit 'name'
+    documents = await documents.map((document) => {
+      const { field } = document
+      return {
+        ...document,
+        field: fields[field],
+      }
+    })
+  } else if (collectionName === 'other') {
+    // do something with collection other ..
+  }
+
+  // .. BUT remember to return documents
+  return documents
+}
+```
+
+In this example, the method `initialize` read all static data that are necessary to the second method for substitute field id with the name.
