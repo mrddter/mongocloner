@@ -21,7 +21,7 @@ async function process(collectionName, documents) {
       const { state } = application
       return {
         ...application,
-        state: applicationStateTypes[state],
+        state: state._id ? state : applicationStateTypes[state],
       }
     })
   } else if (collectionName === 'userinfo') {
