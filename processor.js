@@ -22,8 +22,6 @@ async function process(collectionName, documents) {
       return {
         ...application,
         state: applicationStateTypes[state],
-        state_backup: state,
-        state_backup_date: new Date(),
       }
     })
   } else if (collectionName === 'userinfo') {
