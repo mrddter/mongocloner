@@ -19,7 +19,12 @@ async function process(collectionName, documents) {
   if (collectionName === 'application') {
     documents = await documents.map((application) => {
       const { state } = application
-      return { ...application, state_backup: applicationStateTypes[state], state_backup_date: new Date() }
+      return {
+        ...application,
+        state: applicationStateTypes[state],
+        state_backup: state,
+        state_backup_date: new Date(),
+      }
     })
   } else if (collectionName === 'userInfo') {
     documents = await documents.map((userinfo) => {
