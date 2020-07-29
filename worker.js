@@ -41,7 +41,6 @@ const fs = require('fs')
 const path = require('path')
 const yaml = require('js-yaml')
 const moment = require('moment')
-// const { userInfoRandomizer } = require('./randomizer')
 const processor = require('./processor')
 let mongoSource = require('mongodb').MongoClient
 let mongoTarget = require('mongodb').MongoClient
@@ -81,14 +80,6 @@ function backupDocuments(name, collectionName, documents, format) {
 async function insertDocuments(name, db, collectionName, documents) {
   try {
     if (documents != null && documents.length > 0) {
-      // if (collectionName === 'userinfo______') {
-      //   documents = await Promise.all(
-      //     documents.map((userinfo) => {
-      //       return userInfoRandomizer(userinfo)
-      //     }),
-      //   )
-      // }
-
       documents = await processor.process(collectionName, documents)
 
       console.log(name, collectionName, '- insert', documents.length, 'documents')
