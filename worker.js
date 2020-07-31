@@ -10,6 +10,7 @@ const {
   timeOut,
   backupToImportDir,
 } = require('./config')
+const BSON = require('bson')
 
 const ACTION_CLONE = 'clone'
 const ACTION_APPEND = 'append'
@@ -19,6 +20,7 @@ const ACTION_DELETE_TARGET = 'delete_target'
 const ACTION_IMPORT_BACKUP = 'import_backup' // to target
 const ACTION_LIST_SOURCE = 'list_source'
 const ACTION_LIST_TARGET = 'list_target'
+const ACTION_SIZE = 'size'
 
 const ACTIONS = [
   { name: ACTION_CLONE, source: true, target: true },
@@ -29,6 +31,7 @@ const ACTIONS = [
   { name: ACTION_IMPORT_BACKUP, source: false, target: true },
   { name: ACTION_LIST_SOURCE, source: true, target: false },
   { name: ACTION_LIST_TARGET, source: false, target: true },
+  { name: ACTION_SIZE, source: true, target: false },
 ]
 
 const action = ACTIONS.find((actionItem) => actionItem.name === configAction)
@@ -189,6 +192,22 @@ async function evaluateDocumentsInChunks(
       await backupDocuments('Source', collectionSource, documents, 'yaml')
     } else if (action.name === ACTION_APPEND || action.name === ACTION_CLONE) {
       await insertDocuments('Target', clientTarget, collectionTarget, documents)
+    } else if (action.name === ACTION_SIZE) {
+      documents.forEach((document) => {
+        const size = BSON.calculateObjectSize(document)
+        if (size > 102400)
+          console.log(
+            '_id: ' +
+              document._id +
+              ' || Size: ' +
+              size +
+              'B -> ' +
+              Math.round(size / 1024) +
+              'KB -> ' +
+              Math.round(size / (1024 * 1024)) +
+              'MB',
+          )
+      })
     }
 
     timeOut > 0 && (await timeout(timeOut))

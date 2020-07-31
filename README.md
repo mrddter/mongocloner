@@ -13,6 +13,7 @@ With this tool you can do different actions:
 - `clone`: drop and append specified collections from a wellknown mongo uri to another
 - `list_source`: list all collection names from the source
 - `list_target`: list all collection names from the target
+- `size`: list every document with size > 100kb
 
 ## Fully BASED on
 

@@ -9,6 +9,7 @@
     "start": "yarn dev"
   },
   "dependencies": {
+    "bson": "^4.0.4",
     "dotenv": "^8.2.0",
     "faker": "^4.1.0",
     "fantasy-name-generator": "^2.0.0",
