@@ -11,6 +11,7 @@ let operations = []
 let operationStateTypes = []
 let userInfos = []
 let specialists = []
+let sourceOperationTypes = []
 
 async function initialize(data) {
   const { source, target } = data
@@ -19,12 +20,17 @@ async function initialize(data) {
   // console.log('Load [applicationstatetype] from source')
   // applicationStateTypes = await findIds(source, 'applicationstatetype')
 
-  console.log('Load [specialists] from source')
-  specialists = await source.collection('specialist').find().toArray()
-  console.log('Load [operations] from source')
-  operations = await source.collection('operation').find().toArray()
-  console.log('Load [userInfos] from source')
-  userInfos = await source.collection('userinfo').find().toArray()
+  // console.log('Load [specialists] from source')
+  // specialists = await source.collection('specialist').find().toArray()
+  // console.log('Load [userInfos] from source')
+  // userInfos = await source.collection('userinfo').find().toArray()
+
+  // console.log('Load [operations] from source')
+  // operations = await source.collection('operation').find().toArray()
+  // console.log('Load [operationStateTypes] from source')
+  // operationStateTypes = await source.collection('operationstatetype').find().toArray()
+
+  // sourceOperationTypes = await source.collection('operationtype').find().toArray()
 }
 
 // async function findAndPopulateState(client, collectionName) {
@@ -52,76 +58,102 @@ function normalizeApplication(values = {}) {
 
   values.specialist = specialist ? getId(specialist) : null
   values.operationInfo = operationInfo ? getId(operationInfo) : null
-  values.owners = owners.map((user) => (user ? getId(user) : null))
-  values.owners = values.owners.filter((user) => user)
-  values.candidates = candidates.map((can) => ({
+  values.owners = owners.map(user => (user ? getId(user) : null))
+  values.owners = values.owners.filter(user => user)
+  values.candidates = candidates.map(can => ({
     operation: can.operation ? getId(can.operation) : null,
     range: can.range,
   }))
-  values.operations = operations.map((op) => (op ? getId(op) : null))
-  values.operations = values.operations.filter((op) => op)
+  values.operations = operations.map(op => (op ? getId(op) : null))
+  values.operations = values.operations.filter(op => op)
 
   return values
 }
 
+async function convertLocation(values = {}) {
+  const { atHome, ...rest } = values
+  return {
+    ...rest,
+    location: atHome === false ? 'office' : 'home',
+  }
+}
+
 async function addStates(values = {}) {
   const { _id } = values
-  let filteredOperations = operations.filter((op) => JSON.stringify(op.info) === JSON.stringify(_id))
+  let filteredOperations = operations.filter(op => JSON.stringify(op.info) === JSON.stringify(_id))
 
   let states = []
-  filteredOperations.forEach((op) => {
+  filteredOperations.forEach(op => {
     if (op.state) {
-      const state = operationStateTypes.find((ost) => JSON.stringify(ost._id) === JSON.stringify(op.state))
+      const state = operationStateTypes.find(ost => {
+        // if (JSON.stringify(ost._id) !== JSON.stringify(op.state)) {
+        //   console.log('JSON.stringify(ost._id)', JSON.stringify(ost._id))
+        //   console.log('JSON.stringify(op.state)', JSON.stringify(op.state))
+        //   console.log('different', JSON.stringify(ost._id) === JSON.stringify(op.state))
+        // }
+
+        return JSON.stringify(ost._id) === JSON.stringify(op.state)
+      })
       // states.push({
       //   id: op._id,
       //   state,
       // })
 
-      states.push(state.code)
+      if (!state) {
+        console.log('op.state', op.state)
+      } else {
+        states.push(state.code)
+      }
     }
   })
 
   if (states.length > 0) {
-    states = states.filter((state) => state)
+    states = states.filter(state => state)
     values.operationStates = states.length > 1 ? states.join(',') : states[0]
   }
 
   return values
 }
 
+async function copyPricesWeekendToNight(values = {}) {
+  if (values.home && values.home.fares && values.home.fares.weekend && values.home.fares.weekend.price) {
+    values.home.fares.night = values.home.fares.weekend
+  }
+  if (
+    values.office &&
+    values.office.fares &&
+    values.office.fares.weekend &&
+    values.office.fares.weekend.price
+  ) {
+    values.office.fares.night = values.office.fares.weekend
+  }
+  return values
+}
 
-
-function getContacts({
-  firstName = '',
-  lastName = '',
-  email = '',
-  phone = '',
-}) {
+function getContacts({ firstName = '', lastName = '', email = '', phone = '' }) {
   return `${firstName} ${lastName} ${email} ${phone}`.trim()
 }
 
-
 async function addSpecialists(values = {}) {
   const { _id } = values
-  let filteredOperations = operations.filter((op) => JSON.stringify(op.info) === JSON.stringify(_id))
-
+  let filteredOperations = operations.filter(op => JSON.stringify(op.info) === JSON.stringify(_id))
 
   let opSpecialists = []
-  await Promise.all( filteredOperations.map(async ost=>{
-    const specialist = specialists.find((sp) => JSON.stringify(sp._id) === JSON.stringify(ost.specialist))
-    if(specialist){
-      const userInfo = userInfos.find((ui) => JSON.stringify(ui._id) === JSON.stringify(specialist.userInfo))
-      
-      if(userInfo){
+  await Promise.all(
+    filteredOperations.map(async ost => {
+      const specialist = specialists.find(sp => JSON.stringify(sp._id) === JSON.stringify(ost.specialist))
+      if (specialist) {
+        const userInfo = userInfos.find(ui => JSON.stringify(ui._id) === JSON.stringify(specialist.userInfo))
 
-      opSpecialists.push(getContacts(userInfo))}
-    }
-  }))
-
-
+        if (userInfo) {
+          opSpecialists.push(getContacts(userInfo))
+        }
+      }
+    }),
+  )
 
   if (opSpecialists.length > 0) {
-    opSpecialists = opSpecialists.filter((s) => s)
+    opSpecialists = opSpecialists.filter(s => s)
     values.operationSpecialists = opSpecialists.length > 1 ? opSpecialists.join(',') : opSpecialists[0]
   }
 
@@ -129,12 +161,20 @@ async function addSpecialists(values = {}) {
 }
 
 async function process(collectionName, documents) {
-  // if (collectionName === 'operationinfo') {
-  //   documents = await Promise.all(documents.map((info) => addSpecialists(info)))
+  // if (collectionName === 'price') {
+  //   documents = await Promise.all(documents.map(price => copyPricesWeekendToNight(price)))
   // }
 
   // if (collectionName === 'operationinfo') {
-  //   documents = await Promise.all(documents.map((info) => addStates(info)))
+  //   documents = await Promise.all(documents.map(info => addStates(info)))
+  // }
+
+  // if (collectionName === 'operationinfo') {
+  //   documents = await Promise.all(documents.map(info => convertLocation(info)))
+  // }
+
+  // if (collectionName === 'operationinfo') {
+  //   documents = await Promise.all(documents.map(info => addSpecialists(info)))
   // }
 
   // if (collectionName === 'application') {
@@ -157,8 +197,8 @@ async function findIds(client, collectionName) {
     .collection(collectionName)
     .find({})
     .toArray()
-    .then(async (documents) => {
-      await documents.map((type) => {
+    .then(async documents => {
+      await documents.map(type => {
         ids[type._id] = type
       })
     })
