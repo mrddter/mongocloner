@@ -1,5 +1,6 @@
-const { userInfoRandomizer } = require('./randomizer')
+// const { userInfoRandomizer } = require('./randomizer')
 const mongodb = require('mongodb')
+const _ = require('lodash')
 
 module.exports = {
   process,
@@ -7,14 +8,16 @@ module.exports = {
 }
 
 // let applicationStateTypes = []
-let operations = []
-let operationStateTypes = []
-let userInfos = []
-let specialists = []
-let sourceOperationTypes = []
+// let operations = []
+// let operationStateTypes = []
+// let userInfos = []
+// let specialists = []
+// let operationTypes = []
+let target = null
 
 async function initialize(data) {
-  const { source, target } = data
+  const { source, target: initTarget } = data
+  target = initTarget
   // do something like load static data to use in process method
 
   // console.log('Load [applicationstatetype] from source')
@@ -31,6 +34,13 @@ async function initialize(data) {
   // operationStateTypes = await source.collection('operationstatetype').find().toArray()
 
   // sourceOperationTypes = await source.collection('operationtype').find().toArray()
+  // console.log('Load [operations] from source')
+  // operations = await source.collection('operation').find().toArray()
+  // console.log('Load [userInfos] from source')
+  // userInfos = await source.collection('userinfo').find().toArray()
+
+  // operationTypes = await source.collection('operationtype').find().toArray()
+  // console.log('operationTypes', JSON.stringify(operationTypes))
 }
 
 // async function findAndPopulateState(client, collectionName) {
@@ -156,11 +166,123 @@ async function addSpecialists(values = {}) {
     opSpecialists = opSpecialists.filter(s => s)
     values.operationSpecialists = opSpecialists.length > 1 ? opSpecialists.join(',') : opSpecialists[0]
   }
-
-  return values
 }
+// function normalizeApplication(values = {}) {
+//   const { candidates = [], operations = [], specialist = null, operationInfo = null, owners = [] } = values
+
+//   values.specialist = specialist ? getId(specialist) : null
+//   values.operationInfo = operationInfo ? getId(operationInfo) : null
+//   values.owners = owners.map(user => (user ? getId(user) : null))
+//   values.owners = values.owners.filter(user => user)
+//   values.candidates = candidates.map(can => ({
+//     operation: can.operation ? getId(can.operation) : null,
+//     range: can.range,
+//   }))
+//   values.operations = operations.map(op => (op ? getId(op) : null))
+//   values.operations = values.operations.filter(op => op)
+
+//   return values
+// }
+
+// async function addStates(values = {}) {
+//   const { _id } = values
+//   let filteredOperations = operations.filter(op => JSON.stringify(op.info) === JSON.stringify(_id))
+
+//   let states = []
+//   filteredOperations.forEach(op => {
+//     if (op.state) {
+//       const state = operationStateTypes.find(ost => JSON.stringify(ost._id) === JSON.stringify(op.state))
+//       // states.push({
+//       //   id: op._id,
+//       //   state,
+//       // })
+
+//       states.push(state.code)
+//     }
+//   })
+
+//   if (states.length > 0) {
+//     states = states.filter(state => state)
+//     values.operationStates = states.length > 1 ? states.join(',') : states[0]
+//   }
+
+//   return values
+// }
+
+// function getContacts({ firstName = '', lastName = '', email = '', phone = '' }) {
+//   return `${firstName} ${lastName} ${email} ${phone}`.trim()
+// }
+
+// async function addSpecialists(values = {}) {
+//   const { _id } = values
+//   let filteredOperations = operations.filter(op => JSON.stringify(op.info) === JSON.stringify(_id))
+
+//   let opSpecialists = []
+//   await Promise.all(
+//     filteredOperations.map(async ost => {
+//       const specialist = specialists.find(sp => JSON.stringify(sp._id) === JSON.stringify(ost.specialist))
+//       if (specialist) {
+//         const userInfo = userInfos.find(ui => JSON.stringify(ui._id) === JSON.stringify(specialist.userInfo))
+
+//         if (userInfo) {
+//           opSpecialists.push(getContacts(userInfo))
+//         }
+//       }
+//     }),
+//   )
+
+//   if (opSpecialists.length > 0) {
+//     opSpecialists = opSpecialists.filter(s => s)
+//     values.operationSpecialists = opSpecialists.length > 1 ? opSpecialists.join(',') : opSpecialists[0]
+//   }
+
+//   return values
+// }
 
 async function process(collectionName, documents) {
+  // if (collectionName === 'operationtype') {
+  //   documents = await Promise.all(
+  //     documents.map(async sourceType => {
+  //       const { _id, code } = sourceType
+
+  //       // shit ..
+  //       if (code == null) return null
+
+  //       const targetType = await target.collection(collectionName).findOne({ _id })
+  //       if (targetType) {
+  //         const { _id, id, ...values } = sourceType
+  //         if (!values.locations) {
+  //           if (values.isStudioOnly) {
+  //             values.locations = ['office']
+  //           } else {
+  //             values.locations = ['home', 'office']
+  //           }
+  //         }
+  //         // if exists update the existing one..
+  //         await target.collection(collectionName).update({ _id }, values)
+  //         // ..and return a big null
+  //         return null
+  //       } else {
+  //         // if not exists create a new type ..
+  //         const { _id, id, ...values } = sourceType
+  //         if (!values.locations) {
+  //           if (values.isStudioOnly) {
+  //             values.locations = ['office']
+  //           } else {
+  //             values.locations = ['home', 'office']
+  //           }
+  //         }
+  //         await target.collection(collectionName).insertMany([values])
+  //         // ..and return a big null
+  //         return null
+  //       }
+  //     }),
+  //   )
+
+  //   // strip out all undefined/null values
+  //   // documents = _.compact(documents)
+  //   documents = []
+  // }
   // if (collectionName === 'price') {
   //   documents = await Promise.all(documents.map(price => copyPricesWeekendToNight(price)))
   // }
