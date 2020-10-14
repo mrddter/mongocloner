@@ -34,7 +34,7 @@ const ACTIONS = [
   { name: ACTION_SIZE, source: true, target: false },
 ]
 
-const action = ACTIONS.find((actionItem) => actionItem.name === configAction)
+const action = ACTIONS.find(actionItem => actionItem.name === configAction)
 if (!action) {
   console.log(`Action ${configAction} not valid.`)
   return
@@ -63,7 +63,7 @@ console.log('Required action:', action.name)
 console.log('-----------------')
 
 function timeout(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 function backupDocuments(name, collectionName, documents, format) {
@@ -86,7 +86,9 @@ async function insertDocuments(name, db, collectionName, documents) {
       documents = await processor.process(collectionName, documents)
 
       console.log(name, collectionName, '- insert', documents.length, 'documents')
-      await db.collection(collectionName).insertMany(documents)
+      if (documents && documents.length > 0) {
+        await db.collection(collectionName).insertMany(documents)
+      }
     }
   } catch (err) {
     console.log(name, collectionName, '- insert error', err)
@@ -193,7 +195,7 @@ async function evaluateDocumentsInChunks(
     } else if (action.name === ACTION_APPEND || action.name === ACTION_CLONE) {
       await insertDocuments('Target', clientTarget, collectionTarget, documents)
     } else if (action.name === ACTION_SIZE) {
-      documents.forEach((document) => {
+      documents.forEach(document => {
         const size = BSON.calculateObjectSize(document)
         if (size > 102400)
           console.log(
@@ -263,10 +265,10 @@ async function execute() {
     await client
       .listCollections()
       .toArray()
-      .then((collections) => {
+      .then(collections => {
         const names = collections
-          .filter((c) => c.type === 'collection')
-          .map((c) => c.name)
+          .filter(c => c.type === 'collection')
+          .map(c => c.name)
           .sort()
         console.log(`${prefix}_COLLECTIONS=` + names)
       })
