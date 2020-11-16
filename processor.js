@@ -8,7 +8,7 @@ module.exports = {
 }
 
 // let applicationStateTypes = []
-// let operations = []
+let operations = []
 // let operationStateTypes = []
 // let userInfos = []
 // let specialists = []
@@ -28,19 +28,14 @@ async function initialize(data) {
   // console.log('Load [userInfos] from source')
   // userInfos = await source.collection('userinfo').find().toArray()
 
-  // console.log('Load [operations] from source')
-  // operations = await source.collection('operation').find().toArray()
+  console.log('Load [operations] from source')
+  operations = await source.collection('operation').find().toArray()
   // console.log('Load [operationStateTypes] from source')
   // operationStateTypes = await source.collection('operationstatetype').find().toArray()
-
-  // sourceOperationTypes = await source.collection('operationtype').find().toArray()
-  // console.log('Load [operations] from source')
-  // operations = await source.collection('operation').find().toArray()
+  // console.log('Load [operationtype] from source')
+  // operationTypes = await source.collection('operationtype').find().toArray()
   // console.log('Load [userInfos] from source')
   // userInfos = await source.collection('userinfo').find().toArray()
-
-  // operationTypes = await source.collection('operationtype').find().toArray()
-  // console.log('operationTypes', JSON.stringify(operationTypes))
 }
 
 // async function findAndPopulateState(client, collectionName) {
@@ -239,6 +234,27 @@ async function addSpecialists(values = {}) {
 //   return values
 // }
 
+async function filterWithOperations(documents) {
+  return documents.filter(d => {
+    const ops = operations.find(op => {
+      if (op.info) {
+        if (`${d._id}` === '5f9932f260195f3946bf951b') {
+          console.log('opinfo', d._id)
+          console.log('op.info', op.info)
+        }
+        return `${d._id}` === `${op.info}`
+      } else {
+        if (`${d._id}` === '5f9932f260195f3946bf951b') {
+          console.log('op.info', op.info)
+        }
+        return false
+      }
+    })
+
+    return ops != null
+  })
+}
+
 async function process(collectionName, documents) {
   // if (collectionName === 'operationtype') {
   //   documents = await Promise.all(
@@ -294,6 +310,11 @@ async function process(collectionName, documents) {
   // if (collectionName === 'operationinfo') {
   //   documents = await Promise.all(documents.map(info => convertLocation(info)))
   // }
+
+  console.log('collectionName', collectionName)
+  if (collectionName === 'operationinfo') {
+    documents = await filterWithOperations(documents)
+  }
 
   // if (collectionName === 'operationinfo') {
   //   documents = await Promise.all(documents.map(info => addSpecialists(info)))
