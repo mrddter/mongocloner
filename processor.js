@@ -9,7 +9,7 @@ module.exports = {
 
 // let applicationStateTypes = []
 let operations = []
-// let operationStateTypes = []
+let operationStateTypes = []
 // let userInfos = []
 // let specialists = []
 // let operationTypes = []
@@ -30,8 +30,8 @@ async function initialize(data) {
 
   console.log('Load [operations] from source')
   operations = await source.collection('operation').find().toArray()
-  // console.log('Load [operationStateTypes] from source')
-  // operationStateTypes = await source.collection('operationstatetype').find().toArray()
+  console.log('Load [operationStateTypes] from source')
+  operationStateTypes = await source.collection('operationstatetype').find().toArray()
   // console.log('Load [operationtype] from source')
   // operationTypes = await source.collection('operationtype').find().toArray()
   // console.log('Load [userInfos] from source')
@@ -238,15 +238,8 @@ async function filterWithOperations(documents) {
   return documents.filter(d => {
     const ops = operations.find(op => {
       if (op.info) {
-        if (`${d._id}` === '5f9932f260195f3946bf951b') {
-          console.log('opinfo', d._id)
-          console.log('op.info', op.info)
-        }
         return `${d._id}` === `${op.info}`
       } else {
-        if (`${d._id}` === '5f9932f260195f3946bf951b') {
-          console.log('op.info', op.info)
-        }
         return false
       }
     })
@@ -304,16 +297,15 @@ async function process(collectionName, documents) {
   // }
 
   // if (collectionName === 'operationinfo') {
-  //   documents = await Promise.all(documents.map(info => addStates(info)))
-  // }
-
-  // if (collectionName === 'operationinfo') {
   //   documents = await Promise.all(documents.map(info => convertLocation(info)))
   // }
 
-  console.log('collectionName', collectionName)
   if (collectionName === 'operationinfo') {
     documents = await filterWithOperations(documents)
+  }
+
+  if (collectionName === 'operationinfo') {
+    documents = await Promise.all(documents.map(info => addStates(info)))
   }
 
   // if (collectionName === 'operationinfo') {
