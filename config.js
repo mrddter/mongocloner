@@ -5,6 +5,7 @@ const collectionsSource = process.env.SOURCE_COLLECTIONS.split(',')
 const urlTarget = process.env.TARGET_URI
 const dbTarget = process.env.TARGET_DATABASE
 const backupToImportDir = process.env.BACKUP_TO_IMPORT
+const runProcessor = process.env.RUN_PROCESSOR == 'true' ? true : false
 
 let collectionsTarget = process.env.TARGET_COLLECTIONS
   ? process.env.TARGET_COLLECTIONS.split(',')
@@ -29,4 +30,5 @@ module.exports = {
   chunks,
   timeOut,
   backupToImportDir,
+  runProcessor,
 }

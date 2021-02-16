@@ -57,11 +57,15 @@ SOURCE_COLLECTIONS=collection1,collection2,collection3,collection4,collection5
 # (but with the same number of collections, and pay attention to the order because matters)
 TARGET_COLLECTIONS=
 
+# Enable processor (if present)
+RUN_PROCESSOR=true
 ```
 
 ## How to process documents before inserting
 
 In the class [processor.js](processor.js) is possible to add specific logic to manipulate documents before inserting into target.
+
+Note: you can enable/disable the processor via `.env` (property `RUN_PROCESSOR=true`)
 
 For this purpose you can customize code into class `processor`, here you can change these 2 methods:
 
@@ -77,8 +81,8 @@ async function initialize(data) {
     .collection('myfields')
     .find({})
     .toArray()
-    .then(async (documents) => {
-      await documents.map((field) => {
+    .then(async documents => {
+      await documents.map(field => {
         fields[field._id] = field.name
       })
     })
@@ -90,7 +94,7 @@ async function process(collectionName, documents) {
   if (collectionName === 'myothercollection') {
     // do something with collection myothercollection ..
     // for example: change '_id' with the explicit 'name'
-    documents = await documents.map((document) => {
+    documents = await documents.map(document => {
       const { field } = document
       return {
         ...document,

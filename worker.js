@@ -9,6 +9,7 @@ const {
   chunks,
   timeOut,
   backupToImportDir,
+  runProcessor,
 } = require('./config')
 const BSON = require('bson')
 
@@ -83,7 +84,9 @@ function backupDocuments(name, collectionName, documents, format) {
 async function insertDocuments(name, db, collectionName, documents) {
   try {
     if (documents != null && documents.length > 0) {
-      documents = await processor.process(collectionName, documents)
+      if (runProcessor) {
+        documents = await processor.process(collectionName, documents)
+      }
 
       console.log(name, collectionName, '- insert', documents.length, 'documents')
       if (documents && documents.length > 0) {
@@ -256,7 +259,9 @@ async function execute() {
     }
   }
 
-  await processor.initialize({ source: clientSource, target: clientTarget })
+  if (runProcessor) {
+    await processor.initialize({ source: clientSource, target: clientTarget })
+  }
 
   if (action.name === ACTION_LIST_SOURCE || action.name === ACTION_LIST_TARGET) {
     const client = action.name === ACTION_LIST_SOURCE ? clientSource : clientTarget
